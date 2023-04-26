@@ -19,7 +19,7 @@ interface RoomProps {
 
 const Room = styled.div<RoomProps>`
   position: absolute;
-  background-color: ${({ lightOn }) => (lightOn ? "yellow" : "white")};
+  background-color: ${({ lightOn }) => (lightOn ? "aqua" : "white")};
   border: 1px solid #000000;
   display: flex;
   justify-content: center;
@@ -28,7 +28,7 @@ const Room = styled.div<RoomProps>`
 `;
 
 const LightButton = styled.button<LightButtonProps>`
-  background-color: ${({ lightOn }) => (lightOn ? "yellow" : "white")};
+  background-color: ${({ lightOn }) => (lightOn ? "aqua" : "white")};
   border: none;
   cursor: pointer;
 `;
