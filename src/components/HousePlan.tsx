@@ -69,7 +69,7 @@ const HousePlan = () => {
 
     try {
       const response = await fetch(
-        "https://608a-2406-2d40-311a-6910-00-a96.ngrok-free.app/api/v1/gpio",
+        "https://6613-2406-2d40-311a-6910-00-a96.ngrok-free.app/api/v1/gpio",
         {
           method: "POST",
           headers: {
