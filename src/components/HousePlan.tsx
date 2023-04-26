@@ -1,4 +1,4 @@
-import { useState, ElementType } from "react";
+import { useState, ElementType, useEffect } from "react";
 import styled from "@emotion/styled";
 interface LightButtonProps {
   lightOn: boolean;
@@ -42,6 +42,47 @@ const HousePlan = () => {
     balcony: false,
   });
 
+  const fetchAllStates = async () => {
+    try {
+      const response = await Promise.all(
+        Object.keys(roomToIdMap).map((room) =>
+          fetch(
+            `https://1269-2406-2d40-311a-6910-00-a96.ngrok-free.app/api/v1/gpio_state`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ id: roomToIdMap[room as RoomKey] }),
+            }
+          )
+        )
+      );
+
+      const data = await Promise.all(response.map((res) => res.json()));
+      const updatedLights = data.reduce((acc, curr) => {
+        const room = Object.keys(roomToIdMap).find(
+          (key) => roomToIdMap[key as RoomKey] === curr.id
+        ) as RoomKey;
+
+        return { ...acc, [room]: curr.state === "ON" };
+      }, {});
+
+      setLights(updatedLights);
+    } catch (error) {
+      console.error("Failed to fetch states:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllStates();
+    const intervalId = setInterval(fetchAllStates, 600);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
   type RoomKey =
     | "bedroom1"
     | "bedroom2"
@@ -58,19 +99,18 @@ const HousePlan = () => {
   };
 
   const toggleLight = async (room: RoomKey) => {
-    const newState = !lights[room];
-    setLights({ ...lights, [room]: newState });
+    const currentState = lights[room];
 
     const payload = {
       id: roomToIdMap[room],
-      state: newState ? "ON" : "OFF",
+      state: currentState ? "OFF" : "ON",
     };
 
     console.log("payload", payload);
 
     try {
       const response = await fetch(
-        "https://944c-2406-2d40-311a-6910-00-a96.ngrok-free.app/api/v1/gpio",
+        "https://1269-2406-2d40-311a-6910-00-a96.ngrok-free.app/api/v1/gpio",
         {
           method: "POST",
           headers: {
@@ -83,6 +123,9 @@ const HousePlan = () => {
       if (!response.ok) {
         throw new Error("Failed to update light state");
       }
+
+      // Fetch updated state from the server after making the POST request
+      fetchAllStates();
     } catch (error) {
       console.error(error);
     }
