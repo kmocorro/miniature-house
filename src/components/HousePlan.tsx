@@ -42,47 +42,6 @@ const HousePlan = () => {
     balcony: false,
   });
 
-  const fetchAllStates = async () => {
-    try {
-      const response = await Promise.all(
-        Object.keys(roomToIdMap).map((room) =>
-          fetch(
-            `https://1269-2406-2d40-311a-6910-00-a96.ngrok-free.app/api/v1/gpio_state`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ id: roomToIdMap[room as RoomKey] }),
-            }
-          )
-        )
-      );
-
-      const data = await Promise.all(response.map((res) => res.json()));
-      const updatedLights = data.reduce((acc, curr) => {
-        const room = Object.keys(roomToIdMap).find(
-          (key) => roomToIdMap[key as RoomKey] === curr.id
-        ) as RoomKey;
-
-        return { ...acc, [room]: curr.state === "ON" };
-      }, {});
-
-      setLights(updatedLights);
-    } catch (error) {
-      console.error("Failed to fetch states:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchAllStates();
-    const intervalId = setInterval(fetchAllStates, 600);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
-
   type RoomKey =
     | "bedroom1"
     | "bedroom2"
@@ -124,8 +83,11 @@ const HousePlan = () => {
         throw new Error("Failed to update light state");
       }
 
-      // Fetch updated state from the server after making the POST request
-      fetchAllStates();
+      // Update the state of the lights object
+      setLights((prevLights) => ({
+        ...prevLights,
+        [room]: !currentState,
+      }));
     } catch (error) {
       console.error(error);
     }
